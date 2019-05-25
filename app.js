@@ -44,6 +44,9 @@ nunjucks.configure('views', {
 });
 
 function decode(body, key) {
+	if (body === undefined)
+		return "";
+
 	var buff = new Buffer(body.toString(), 'base64')
 	//console.dir(buff);
 	//console.dir(key);
@@ -52,7 +55,7 @@ function decode(body, key) {
 	return bufferToString(r);
 }
 
-function do_GET(options, callback, cb_args) {
+function do_GET(options, callback) {
 	var req_ = http.get(options, function(res_) {
 
 		// Buffer the body entirely for processing as a whole.
@@ -63,7 +66,7 @@ function do_GET(options, callback, cb_args) {
 		}).on('end', function() {
 			var body = Buffer.concat(bodyChunks);
 
-			callback(body);
+			callback(body, res_);
 		})
 	});
 
@@ -88,23 +91,44 @@ app.get('/animes/:anime_id/video_online/:episode', function(req, res) {
 		path: '/' + anime_id
 	};
 
-	do_GET(videos_options, function(anime_videos_res, callback, cb_args) {
-		var anime_videos = JSON.parse(decode(anime_videos_res, key2));
-		for (kind of ["fandub", "raw", "subtitles"]) {
-			
-			for (var i = 0; i < anime_videos[kind].length; i++) {
-				anime_videos[kind][i]["url"] = decode(anime_videos[kind][i].url, key);
-				anime_videos[kind][i]["video_hosting"] = url.parse(anime_videos[kind][i].url).hostname;
+	function fallback() {
+		res.render('video_template.html', {"anime_id": anime_id, "episode": episode, "anime_videos": {}, "anime_info": {}, "static": ""});
+	}
+
+	function not_found() {
+		res.render('404.html');
+	}
+
+	do_GET(videos_options, function(anime_videos_body, anime_videos_res) {
+		try {
+			if (anime_videos_res.statusCode == 404)
+				return not_found();
+
+			var anime_videos = JSON.parse(decode(anime_videos_body, key2));
+			for (kind of ["fandub", "raw", "subtitles"]) {
+				for (var i = 0; i < anime_videos[kind].length; i++) {
+					anime_videos[kind][i]["url"] = decode(anime_videos[kind][i].url, key);
+					anime_videos[kind][i]["video_hosting"] = url.parse(anime_videos[kind][i].url).hostname;
+				}
 			}
+			anime_videos["active_video"].url = decode(anime_videos["active_video"].url, key);
+			do_GET(anime_options, function(anime_info_body, anime_info_res) {
+				try {
+					if (anime_info_res.statusCode == 404)
+						return not_found();
+					var anime_info = JSON.parse(decode(anime_info_body, key2));
+					res.render('video_template.html', {"anime_id": anime_id, "episode": episode, "anime_videos": anime_videos, "anime_info": anime_info, "static": ""});
+				} catch (err) {
+					fallback();
+					console.log(err);
+				}
+			});
+		} catch (err) {
+			fallback();
+			console.log(err);
 		}
-		anime_videos["active_video"].url = decode(anime_videos["active_video"].url, key);
 
-		do_GET(anime_options, function(anime_info_res, callback, cb_args) {
-			var anime_info = JSON.parse(decode(anime_info_res, key2));
-			res.render('video_template.html', {"anime_id": anime_id, "episode": episode, "anime_videos": anime_videos, "anime_info": anime_info, "static": ""});
-		});
 	});
-
 });
 
 app.use(express.static(getExternalFile("public")))
