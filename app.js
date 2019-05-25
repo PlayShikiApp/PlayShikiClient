@@ -47,7 +47,7 @@ function decode(body, key) {
 	if (body === undefined)
 		return "";
 
-	var buff = new Buffer(body.toString(), 'base64')
+	var buff = new Buffer.from(body.toString(), 'base64')
 	//console.dir(buff);
 	//console.dir(key);
 	var r = xor(buff, key);
