@@ -1,0 +1,21 @@
+pkg package.json
+rm -fr dist
+
+mkdir -p dist/win64
+mkdir -p dist/linux64
+mkdir -p dist/macos64
+cp Shikimori-win.exe dist/win64
+cp Shikimori-linux dist/linux64
+cp Shikimori-macos dist/macos64
+
+cd dist
+for target in win64 linux64 macos64
+do
+	cd $target
+	cp -r ../../public .
+	cp -r ../../views .
+	cp ../../.env .
+	zip -9r ../PlayShikiApp-$target-$(cat ../../version.txt).zip *
+	cd ..
+done
+
