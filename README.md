@@ -16,10 +16,12 @@ Generate *.js keys (key.priv and key2.priv must match keys used on [server](http
 ./utils/genkeys.py key2.priv keys/key2.js
 ```
 
-Configure host address and port in .env file
+Configure host address and port in config.js file
 ```
-HOST=127.0.0.1
-PORT=8100
+module.exports = {
+   "HOST": "127.0.0.1",
+   "PORT": "8100"
+}
 ```
 
 # Client app packaging and run

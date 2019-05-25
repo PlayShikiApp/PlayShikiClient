@@ -1,6 +1,7 @@
 
 *.log
 .env
+config.js
 keys
 
 node_modules/

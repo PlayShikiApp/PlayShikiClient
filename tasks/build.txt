@@ -14,7 +14,6 @@ do
 	cd $target
 	cp -r ../../public .
 	cp -r ../../views .
-	cp ../../.env .
 	zip -9r ../PlayShikiApp-$target-$(cat ../../version.txt).zip *
 	cd ..
 done

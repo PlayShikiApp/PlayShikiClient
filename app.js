@@ -1,4 +1,4 @@
-require('dotenv').config()
+var config = require('./config.js');
 
 var process = require('process');
 var path = require('path');
@@ -80,14 +80,14 @@ app.get('/animes/:anime_id/video_online/:episode', function(req, res) {
 	var episode = req.params.episode;
 
 	var videos_options = {
-		host: process.env.HOST,
-		port: process.env.PORT,
+		host: config["HOST"],
+		port: config["PORT"],
 		path: '/api/' + anime_id + '/' + episode
 	};
 
 	var anime_options = {
-		host: process.env.HOST,
-		port: process.env.PORT,
+		host: config["HOST"],
+		port: config["PORT"],
 		path: '/' + anime_id
 	};
 
